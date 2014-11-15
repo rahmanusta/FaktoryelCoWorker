@@ -5,12 +5,10 @@ import com.google.common.collect.Lists;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 /**
  * Created by usta on 12.11.2014.
@@ -31,7 +29,7 @@ public class FaktoryelServerSoket {
 
         // if there is a start key, start execution
         if (message.containsKey("start")) {
-            dispatchWorks(session, (Integer) message.get("N"));
+            dispatchWorks(session, (Long) message.get("N"));
         }
 
         // if there is a chunk key, collect chunk results
@@ -48,19 +46,19 @@ public class FaktoryelServerSoket {
      * @param session
      * @throws IOException
      */
-    private void dispatchWorks(Session session,Integer N) throws IOException {
+    private void dispatchWorks(Session session,Long N) throws IOException {
 
         if (workStartTimeMillis == null) {
             workStartTimeMillis = System.currentTimeMillis();
         }
 
         // 1,...,250000 arası Liste hazırlanıyor
-        List<Integer> numberList = IntStream.rangeClosed(1, N).boxed().collect(Collectors.toList());
+        List<Long> numberList = LongStream.rangeClosed(1, N).boxed().collect(Collectors.toList());
 
         Set<Session> allSessions = session.getOpenSessions();
 
         // Liste parçalara ayrılıyor
-        List<List<Integer>> numberChunkedList = Lists.partition(numberList, (numberList.size() / allSessions.size()));
+        List<List<Long>> numberChunkedList = Lists.partition(numberList, (numberList.size() / allSessions.size()));
 
         // İşlemin bittiğini anlamak için gerekli sonuç sayısı
         workDoneCount = ((numberChunkedList.size() % allSessions.size()) == 0) ? allSessions.size(): allSessions.size() + 1;
@@ -68,9 +66,9 @@ public class FaktoryelServerSoket {
         Iterator<Session> allSessionsIterator = allSessions.iterator();
 
         // Her parçalı sayı listesi bir lambda fonksiyonu içinde kullanıcılara pay ediliyor
-        for (List<Integer> numberChunks : numberChunkedList) {
+        for (List<Long> numberChunks : numberChunkedList) {
 
-            ArrayList<Integer> chunk = new ArrayList<>(numberChunks);
+            ArrayList<Long> chunk = new ArrayList<>(numberChunks);
 
             // remoteLambda fonksiyonu Worker'da tanımlanır, Node'larda koşturulur
             RemoteLambda<Session> remoteLambda =  (serverSession) -> {
@@ -127,7 +125,9 @@ public class FaktoryelServerSoket {
             Map map = new HashMap();
             map.put("totalWorker", allSessions.size());
             map.put("completeTime", workerCompleteTime);
-            map.put("result", factorielResult.toString().substring(0, 10).concat("..."));
+            String resultAsString = factorielResult.toString();
+            resultAsString = resultAsString.length()>10?resultAsString.substring(0, 10):resultAsString;
+            map.put("result", resultAsString.concat("..."));
 
 
             // İşlem tamam, sonuçlar kullanıcılara iletiliyor..
