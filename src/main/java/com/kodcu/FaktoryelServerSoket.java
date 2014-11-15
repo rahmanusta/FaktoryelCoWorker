@@ -2,8 +2,7 @@ package com.kodcu;
 
 import com.google.common.collect.Lists;
 
-import javax.websocket.OnMessage;
-import javax.websocket.Session;
+import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.io.Serializable;
@@ -140,16 +139,20 @@ public class FaktoryelServerSoket {
             workStartTimeMillis = null;
             subFactoriels.clear();
 
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-//                    ClientApp.connect();
-                }
-            }, 500);
-
 
         }
+    }
+
+
+    @OnError
+    public void onerror(Throwable throwable){
+        throwable.printStackTrace();
+    }
+
+    @OnClose
+    public void onclose(CloseReason reason){
+        System.out.println(reason.getCloseCode());
+        System.out.println(reason.getReasonPhrase());
     }
 
 }

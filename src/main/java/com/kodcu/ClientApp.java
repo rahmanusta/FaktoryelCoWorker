@@ -1,5 +1,7 @@
 package com.kodcu;
 
+import org.glassfish.tyrus.client.ClientManager;
+
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -22,12 +24,15 @@ public class ClientApp {
     public static void connect() throws Exception {
 
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        ClientManager clientManager = ClientManager.createClient();
+        clientManager.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 1024*1024*100*999999999);
+
         URI uri = new URI("ws://localhost:8080/soket");
-        Session client = container.connectToServer(FaktoryelWorkerSoket.class, uri);
+        Session client = clientManager.connectToServer(FaktoryelWorkerSoket.class, uri);
 
         Map map = new HashMap<>();
         map.put("start", null);
-        map.put("N", 1_000_000);
+        map.put("N", 2_000_000);
 
         client.getAsyncRemote().sendObject(map);
 

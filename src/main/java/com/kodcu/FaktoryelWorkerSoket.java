@@ -40,4 +40,16 @@ public class FaktoryelWorkerSoket {
         }
 
     }
+
+    @OnError
+    public void onerror(Throwable throwable){
+        throwable.printStackTrace();
+    }
+
+    @OnClose
+    public void onclose(CloseReason reason){
+        System.out.println(reason.getCloseCode());
+        System.out.println(reason.getReasonPhrase());
+    }
+
 }
