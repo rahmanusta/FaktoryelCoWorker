@@ -113,7 +113,7 @@ public class FaktoryelServerSoket {
 
         if (subFactoriels.size() == workDoneCount) {
 
-            BigInteger factorielResult = subFactoriels.parallelStream()
+            BigInteger factorielResult = subFactoriels.stream()
                     .reduce(BigInteger.ONE, (first, second) -> first.multiply(second));
 
             long workerEndTimeMillis = System.currentTimeMillis();
