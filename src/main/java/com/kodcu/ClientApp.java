@@ -24,7 +24,7 @@ public class ClientApp {
     public static void connect(String[] args) throws Exception {
 
         String domain = "localhost";
-        Long N = 5L;
+        Long N = 1200000L;
 
         if (args.length > 0) {
             domain = args[0];

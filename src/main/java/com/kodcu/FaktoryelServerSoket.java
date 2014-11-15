@@ -43,10 +43,11 @@ public class FaktoryelServerSoket {
      * Liste parçalara ayrılır ve tüm istemcilere bir payı gönderilir,
      * Liste parçaları yanında serileştirme yöntemiyle bir Lambda fonksiyonu da iletilir,
      * Bu sayede sunucu tarafında yazılan iş mantığı, client tarafında koşturulmuş olur.
+     *
      * @param session
      * @throws IOException
      */
-    private void dispatchWorks(Session session,Long N) throws IOException {
+    private void dispatchWorks(Session session, Long N) throws IOException {
 
         if (workStartTimeMillis == null) {
             workStartTimeMillis = System.currentTimeMillis();
@@ -61,7 +62,7 @@ public class FaktoryelServerSoket {
         List<List<Long>> numberChunkedList = Lists.partition(numberList, (numberList.size() / allSessions.size()));
 
         // İşlemin bittiğini anlamak için gerekli sonuç sayısı
-        workDoneCount = ((numberChunkedList.size() % allSessions.size()) == 0) ? allSessions.size(): allSessions.size() + 1;
+        workDoneCount = ((numberChunkedList.size() % allSessions.size()) == 0) ? allSessions.size() : allSessions.size() + 1;
 
         Iterator<Session> allSessionsIterator = allSessions.iterator();
 
@@ -71,10 +72,10 @@ public class FaktoryelServerSoket {
             ArrayList<Long> chunk = new ArrayList<>(numberChunks);
 
             // remoteLambda fonksiyonu Worker'da tanımlanır, Node'larda koşturulur
-            RemoteLambda<Session> remoteLambda =  (serverSession) -> {
+            RemoteLambda<Session> remoteLambda = (serverSession) -> {
 
                 BigInteger subFactoriel = chunk
-                        .stream()
+                        .parallelStream()
                         .map(BigInteger::valueOf)
                         .reduce(BigInteger.ONE, (first, second) -> first.multiply(second));
 
@@ -104,6 +105,7 @@ public class FaktoryelServerSoket {
      * Tüm alt parçalar hesaplandığında ise,
      * Alt sonuçların da kendi içinde çarpımı sağlanır,
      * Ardından toplam koşma süresi gibi bilgiler tüm istemcilere iletilir.
+     *
      * @param message
      * @param session
      */
@@ -113,7 +115,7 @@ public class FaktoryelServerSoket {
 
         if (subFactoriels.size() == workDoneCount) {
 
-            BigInteger factorielResult = subFactoriels.stream()
+            BigInteger factorielResult = subFactoriels.parallelStream()
                     .reduce(BigInteger.ONE, (first, second) -> first.multiply(second));
 
             long workerEndTimeMillis = System.currentTimeMillis();
@@ -126,7 +128,7 @@ public class FaktoryelServerSoket {
             map.put("totalWorker", allSessions.size());
             map.put("completeTime", workerCompleteTime);
             String resultAsString = factorielResult.toString();
-            resultAsString = resultAsString.length()>10?resultAsString.substring(0, 10):resultAsString;
+            resultAsString = resultAsString.length() > 10 ? resultAsString.substring(0, 10) : resultAsString;
             map.put("result", resultAsString.concat("..."));
 
 
@@ -145,12 +147,12 @@ public class FaktoryelServerSoket {
 
 
     @OnError
-    public void onerror(Throwable throwable){
+    public void onerror(Throwable throwable) {
         throwable.printStackTrace();
     }
 
     @OnClose
-    public void onclose(CloseReason reason){
+    public void onclose(CloseReason reason) {
         System.out.println(reason.getCloseCode());
         System.out.println(reason.getReasonPhrase());
     }
