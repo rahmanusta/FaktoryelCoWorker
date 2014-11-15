@@ -74,7 +74,7 @@ public class FaktoryelServerSoket {
             RemoteLambda<Session> remoteLambda =  (serverSession) -> {
 
                 BigInteger subFactoriel = chunk
-                        .parallelStream()
+                        .stream()
                         .map(BigInteger::valueOf)
                         .reduce(BigInteger.ONE, (first, second) -> first.multiply(second));
 
